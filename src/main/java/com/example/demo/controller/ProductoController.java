@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Producto;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +20,11 @@ public class ProductoController {
     private Long currentId = 1L;
 
     public ProductoController() {
-        productos.add(new Producto(currentId++, "Laptop", 1200.0, 10, null));
-        productos.add(new Producto(currentId++, "Mouse", 25.5, 50, null));
-        productos.add(new Producto(currentId++, "Teclado", 45.0, 30, null));
-        productos.add(new Producto(currentId++, "Monitor", 300.0, 15, null));
-        productos.add(new Producto(currentId++, "Audifonos", 80.0, 20, null));
+        productos.add(new Producto(currentId++, "Laptop", 1200.0, 10, "Tecnologia"));
+        productos.add(new Producto(currentId++, "Mouse", 25.5, 50, "Perifericos"));
+        productos.add(new Producto(currentId++, "Teclado", 45.0, 30, "Perifericos"));
+        productos.add(new Producto(currentId++, "Monitor", 300.0, 15, "Tecnologia"));
+        productos.add(new Producto(currentId++, "Audifonos", 80.0, 20, "Perifericos"));
     }
 
     @GetMapping
@@ -32,13 +34,24 @@ public class ProductoController {
 
     @GetMapping("/buscar")
     public List<Producto> getByCategoria(@RequestParam(required = false) String categoria) {
-        if (categoria == null) {
+        if (categoria == null || categoria.isBlank()) {
             return productos;
         }
+
+        String terminoBuscado = Normalizer.normalize(categoria, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase();
+
         List<Producto> resultado = new ArrayList<>();
         for (Producto p : productos) {
-            if (p.getCategoria() != null && p.getCategoria().equalsIgnoreCase(categoria)) {
-                resultado.add(p);
+            if (p.getCategoria() != null) {
+                String categoriaProducto = Normalizer.normalize(p.getCategoria(), Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "")
+                        .toLowerCase();
+
+                if (categoriaProducto.equals(terminoBuscado)) {
+                    resultado.add(p);
+                }
             }
         }
         return resultado;
@@ -54,14 +67,14 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<Producto> create(@RequestBody Producto producto) {
+    public ResponseEntity<Producto> create(@Valid @RequestBody Producto producto) {
         producto.setId(currentId++);
         productos.add(producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(producto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> update(@PathVariable Long id, @RequestBody Producto actualizado) {
+    public ResponseEntity<Producto> update(@PathVariable Long id, @Valid @RequestBody Producto actualizado) {
         for (int i = 0; i < productos.size(); i++) {
             if (productos.get(i).getId().equals(id)) {
                 actualizado.setId(id);
