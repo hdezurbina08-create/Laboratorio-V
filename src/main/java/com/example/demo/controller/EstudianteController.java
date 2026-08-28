@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Estudiante;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.demo.model.Estudiante;
-
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,16 +19,40 @@ public class EstudianteController {
     private Long currentId = 1L;
 
     public EstudianteController() {
-        estudiantes.add(new Estudiante(currentId++, "Carlos Gómez", "2023001", "Sistemas"));
-        estudiantes.add(new Estudiante(currentId++, "Ana Martínez", "2023002", "Industrial"));
-        estudiantes.add(new Estudiante(currentId++, "Luis Hernández", "2023003", "Sistemas"));
-        estudiantes.add(new Estudiante(currentId++, "María Rodríguez", "2023004", "Civil"));
-        estudiantes.add(new Estudiante(currentId++, "Jorge López", "2023005", "Administración"));
+        estudiantes.add(new Estudiante(currentId++, "Carlos", "Gómez", "Sistemas"));
+        estudiantes.add(new Estudiante(currentId++, "María", "López", "Sistemas"));
+        estudiantes.add(new Estudiante(currentId++, "Juan", "Pérez", "Industrial"));
+        estudiantes.add(new Estudiante(currentId++, "Ana", "Martínez", "Administración"));
     }
 
     @GetMapping
     public List<Estudiante> getAll() {
         return estudiantes;
+    }
+
+    @GetMapping("/buscar")
+    public List<Estudiante> getByCarrera(@RequestParam(required = false) String carrera) {
+        if (carrera == null || carrera.isBlank()) {
+            return estudiantes;
+        }
+
+        String terminoBuscado = Normalizer.normalize(carrera, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase();
+
+        List<Estudiante> resultado = new ArrayList<>();
+        for (Estudiante e : estudiantes) {
+            if (e.getCarrera() != null) {
+                String carreraEstudiante = Normalizer.normalize(e.getCarrera(), Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "")
+                        .toLowerCase();
+
+                if (carreraEstudiante.equals(terminoBuscado)) {
+                    resultado.add(e);
+                }
+            }
+        }
+        return resultado;
     }
 
     @GetMapping("/{id}")
@@ -66,8 +90,9 @@ public class EstudianteController {
 
         Estudiante e = opt.get();
         if (updates.containsKey("nombre")) e.setNombre((String) updates.get("nombre"));
-        if (updates.containsKey("carnet")) e.setCarnet((String) updates.get("carnet"));
+        if (updates.containsKey("apellido")) e.setApellido((String) updates.get("apellido"));
         if (updates.containsKey("carrera")) e.setCarrera((String) updates.get("carrera"));
+        if (updates.containsKey("email")) e.setEmail((String) updates.get("email"));
 
         return ResponseEntity.ok(e);
     }

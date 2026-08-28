@@ -26,4 +26,14 @@ public class Estudiante {
 
     public String getCarrera() { return carrera; }
     public void setCarrera(String carrera) { this.carrera = carrera; }
+
+    public void setApellido(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setApellido'");
+    }
+
+    public void setEmail(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setEmail'");
+    }
 }

@@ -30,6 +30,21 @@ public class TareaController {
         return tareas;
     }
 
+    @GetMapping("/buscar")
+    public List<Tarea> getByEstado(@RequestParam(required = false) Boolean completada) {
+        if (completada == null) {
+            return tareas;
+        }
+
+        List<Tarea> resultado = new ArrayList<>();
+        for (Tarea t : tareas) {
+            if (t.isCompletada() == completada) {
+                resultado.add(t);
+            }
+        }
+        return resultado;
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Tarea> getById(@PathVariable Long id) {
         return tareas.stream()

@@ -1,11 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Producto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.example.demo.controller.ProductoController;
-import com.example.demo.model.Producto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +18,32 @@ public class ProductoController {
     private Long currentId = 1L;
 
     public ProductoController() {
-        productos.add(new Producto(currentId++, "Laptop", 1200.00, 10));
-        productos.add(new Producto(currentId++, "Mouse", 25.50, 50));
-        productos.add(new Producto(currentId++, "Teclado", 45.00, 30));
-        productos.add(new Producto(currentId++, "Monitor", 300.00, 15));
-        productos.add(new Producto(currentId++, "Audífonos", 80.00, 20));
+        productos.add(new Producto(currentId++, "Laptop", 1200.0, 10, null));
+        productos.add(new Producto(currentId++, "Mouse", 25.5, 50, null));
+        productos.add(new Producto(currentId++, "Teclado", 45.0, 30, null));
+        productos.add(new Producto(currentId++, "Monitor", 300.0, 15, null));
+        productos.add(new Producto(currentId++, "Audifonos", 80.0, 20, null));
     }
 
-    // GET ALL - Obtener todos los productos
     @GetMapping
     public List<Producto> getAll() {
         return productos;
     }
 
-    // GET BY ID - Obtener por ID
+    @GetMapping("/buscar")
+    public List<Producto> getByCategoria(@RequestParam(required = false) String categoria) {
+        if (categoria == null) {
+            return productos;
+        }
+        List<Producto> resultado = new ArrayList<>();
+        for (Producto p : productos) {
+            if (p.getCategoria() != null && p.getCategoria().equalsIgnoreCase(categoria)) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Producto> getById(@PathVariable Long id) {
         return productos.stream()
@@ -43,7 +53,6 @@ public class ProductoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST - Crear producto
     @PostMapping
     public ResponseEntity<Producto> create(@RequestBody Producto producto) {
         producto.setId(currentId++);
@@ -51,7 +60,6 @@ public class ProductoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(producto);
     }
 
-    // PUT - Actualizar completo
     @PutMapping("/{id}")
     public ResponseEntity<Producto> update(@PathVariable Long id, @RequestBody Producto actualizado) {
         for (int i = 0; i < productos.size(); i++) {
@@ -64,7 +72,6 @@ public class ProductoController {
         return ResponseEntity.notFound().build();
     }
 
-    // PATCH - Actualización parcial
     @PatchMapping("/{id}")
     public ResponseEntity<Producto> patch(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Optional<Producto> opt = productos.stream().filter(p -> p.getId().equals(id)).findFirst();
@@ -72,13 +79,13 @@ public class ProductoController {
 
         Producto p = opt.get();
         if (updates.containsKey("nombre")) p.setNombre((String) updates.get("nombre"));
-        if (updates.containsKey("precio")) p.setPrecio(Double.valueOf(updates.get("precio").toString()));
-        if (updates.containsKey("stock")) p.setStock(Integer.valueOf(updates.get("stock").toString()));
+        if (updates.containsKey("precio")) p.setPrecio(((Number) updates.get("precio")).doubleValue());
+        if (updates.containsKey("stock")) p.setStock((Integer) updates.get("stock"));
+        if (updates.containsKey("categoria")) p.setCategoria((String) updates.get("categoria"));
 
         return ResponseEntity.ok(p);
     }
 
-    // DELETE - Eliminar producto
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return productos.removeIf(p -> p.getId().equals(id)) ? 
