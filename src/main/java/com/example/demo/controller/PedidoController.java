@@ -2,6 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Pedido;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,11 +25,12 @@ public class PedidoController {
     private Long currentId = 1L;
 
     public PedidoController() {
-        pedidos.add(new Pedido(currentId++, "Carlos Perez", "Laptop", 1, 1200.0, "PENDIENTE"));
-        pedidos.add(new Pedido(currentId++, "Ana Gomez", "Mouse", 2, 51.0, "ENVIADO"));
-        pedidos.add(new Pedido(currentId++, "Luis Martinez", "Teclado", 1, 45.0, "ENTREGADO"));
-        pedidos.add(new Pedido(currentId++, "Maria Lopez", "Monitor", 2, 600.0, "PENDIENTE"));
-        pedidos.add(new Pedido(currentId++, "Jorge Hernandez", "Audifonos", 1, 80.0, "CANCELADO"));
+        // Al menos 5 pedidos iniciales cargados en memoria
+        pedidos.add(new Pedido(currentId++, "Carlos Perez", "Laptop", 1, 1200.00, "PENDIENTE"));
+        pedidos.add(new Pedido(currentId++, "Ana Gomez", "Mouse", 2, 51.00, "ENVIADO"));
+        pedidos.add(new Pedido(currentId++, "Luis Martinez", "Teclado", 1, 45.00, "ENTREGADO"));
+        pedidos.add(new Pedido(currentId++, "Maria Lopez", "Monitor", 2, 600.00, "PENDIENTE"));
+        pedidos.add(new Pedido(currentId++, "Jorge Hernandez", "Audifonos", 1, 80.00, "CANCELADO"));
     }
 
     @GetMapping
@@ -67,10 +71,25 @@ public class PedidoController {
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Actualizar campos especificos de un pedido (ej. estado)")
+    @Operation(
+        summary = "Actualizar campos especificos de un pedido",
+        description = "Permite modificar únicamente ciertos campos, por ejemplo, cambiar solo el estado a ENVIADO.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Map.class),
+                examples = @ExampleObject(
+                    name = "Ejemplo de PATCH para cambiar estado",
+                    value = "{\n  \"estado\": \"ENVIADO\"\n}"
+                )
+            )
+        )
+    )
     public ResponseEntity<Pedido> patch(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Optional<Pedido> opt = pedidos.stream().filter(p -> p.getId().equals(id)).findFirst();
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         Pedido p = opt.get();
         if (updates.containsKey("cliente")) p.setCliente((String) updates.get("cliente"));
@@ -83,7 +102,7 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un pedido")
+    @Operation(summary = "Eliminar un pedido por ID")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return pedidos.removeIf(p -> p.getId().equals(id)) ? 
                 ResponseEntity.noContent().build() : ResponseEntity.notFound().build();

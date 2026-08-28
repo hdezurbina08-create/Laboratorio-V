@@ -1,28 +1,36 @@
 package com.example.demo.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public class Pedido {
+
+    @Schema(example = "1")
     private Long id;
 
     @NotBlank(message = "El cliente es obligatorio")
+    @Schema(example = "Carlos Perez")
     private String cliente;
 
     @NotBlank(message = "El producto es obligatorio")
+    @Schema(example = "Laptop")
     private String producto;
 
     @NotNull(message = "La cantidad es obligatoria")
     @Min(value = 1, message = "La cantidad debe ser al menos 1")
+    @Schema(example = "1")
     private Integer cantidad;
 
     @NotNull(message = "El total es obligatorio")
     @Positive(message = "El total debe ser un valor positivo")
+    @Schema(example = "1200.00")
     private Double total;
 
     @NotBlank(message = "El estado es obligatorio")
+    @Schema(example = "PENDIENTE")
     private String estado;
 
     public Pedido() {}
