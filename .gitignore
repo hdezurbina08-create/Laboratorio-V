@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/fallthrough/
